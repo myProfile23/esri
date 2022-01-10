@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESRI</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="main.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.22/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.22/"></script>
+    <script></script>
+  </head>
+  <body>
+    <div id="appContainer">
+      <div id="viewDiv">
+        <div
+          id="btn-export"
+          class="esri-widget esri-widget--button esri-widget esri-interactive"
+          title="Export to CSV"
+        >
+          <span class="esri-icon-download"></span>
+        </div>
+      </div>
+      <div id="tableContainer" class="container">
+        <div id="tableDiv"></div>
+      </div>
+      <div id="mainDiv" class="esri-widget">
+        <label class="switch">
+          <input id="checkboxId" type="checkbox" checked="yes" />
+          <span class="slider round"></span>
+        </label>
+        <label class="labelText" id="labelText">Hide feature table</label>
+      </div>
+    </div>
+  </body>
+</html>
