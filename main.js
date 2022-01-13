@@ -8,6 +8,7 @@ require([
   let selectedFeature, id;
   let featureTable, featureLayer, template, map, view, searchBar;
   const features = [];
+  let changeReq = `<=`;
 
   const url =
     "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties/FeatureServer/0/";
@@ -22,6 +23,10 @@ require([
           {
             fieldName: "STATE_NAME",
             label: "State",
+          },
+          {
+            fieldName: "NAME",
+            label: "County",
           },
           { fieldName: "POPULATION", label: "Population" },
         ],
@@ -68,6 +73,10 @@ require([
           name: "STATE_NAME",
           label: "State",
           direction: "asc",
+        },
+        {
+          name: "NAME",
+          label: "County",
         },
 
         {
@@ -117,32 +126,44 @@ require([
     });
   });
 
-  function setupCSV() {
+  let result = [];
+  const btn = document.getElementById("btn-export");
+  btn.addEventListener("click", () => {
+    exportToCSV(ConvertToCSV(result));
+  });
+
+  async function setupCSV() {
     view.ui.add("btn-export", "top-left");
-    const btn = document.getElementById("btn-export");
-    btn.addEventListener("click", () => {
-      let data = `${url}query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=population%2C+state_name&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=true&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=`;
-      fetch(data)
-        .then((response) => response.json())
-        .then((data) => ConvertToCSV(data))
-        .then((result) => exportToCSV(result));
-    });
+    let urlData = `${url}query?where=FID+${changeReq}+2000&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.1&units=esriSRUnit_Meter&returnGeodetic=false&outFields=fid%2C+state_name%2C+name%2C+population&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=`;
+    let res = await fetch(urlData);
+    let data = await res.json();
+    result.push(data);
+
+    if (data.features.length == 2000) {
+      changeReq = ">";
+      setupCSV();
+    }
   }
 
   function ConvertToCSV(objArray) {
     let array = typeof objArray != "object" ? JSON.parse(objArray) : objArray;
-    let str = "POPULATION, STATE_NAME \r\n";
-    for (let i = 0; i < array.features.length; i++) {
-      let line = "";
-      for (let index in array.features[i].attributes) {
-        console.log(array.features[i].attributes[index]);
-        if (line != "") {
-          line += ",";
+    let str = "STATE_NAME, NAME, POPULATION \r\n";
+
+    array.forEach((obj) => {
+      for (let i = 0; i < obj.features.length; i++) {
+        let line = "";
+        for (let index in obj.features[i].attributes) {
+          if (index === "FID") {
+            continue;
+          }
+          if (line != "") {
+            line += ",";
+          }
+          line += obj.features[i].attributes[index];
         }
-        line += array.features[i].attributes[index];
+        str += line + "\r\n";
       }
-      str += line + "\r\n";
-    }
+    });
     return str;
   }
 
